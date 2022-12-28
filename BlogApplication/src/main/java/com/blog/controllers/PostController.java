@@ -13,9 +13,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.blog.dto.PostDto;
+import com.blog.dto.PostResponse;
 import com.blog.entity.Post;
 import com.blog.exceptions.CategoryException;
 import com.blog.exceptions.PostException;
@@ -53,9 +55,12 @@ public class PostController {
 		}
 		//get all posts
 	    @GetMapping("")
-		public ResponseEntity<List<PostDto>> getAllPost()throws PostException{
-			List<PostDto> listOfPostDto = pService.getAllPost();
-			return new ResponseEntity<List<PostDto>>(listOfPostDto,HttpStatus.CREATED);
+		public ResponseEntity<PostResponse> getAllPost(@RequestParam(value="pageNumber",defaultValue = "0",required = false) Integer pageNumber,
+				                                        @RequestParam(value="pageSize",defaultValue = "10",required = false) Integer pageSize,
+				                                        @RequestParam(value="sortBy",defaultValue = "postId",required = false) String sortBy,
+				                                        @RequestParam(value="sortDir",defaultValue = "asc",required = false)String sortDir)throws PostException{
+	    	PostResponse listOfPostDto = pService.getAllPost(pageNumber, pageSize,sortBy,sortDir);
+			return new ResponseEntity<PostResponse>(listOfPostDto,HttpStatus.CREATED);
 		}
 		//get post by id
 	    @GetMapping("/post/{postId}")
@@ -77,7 +82,7 @@ public class PostController {
 		}
 		//get posts by search
 		@GetMapping("/search/{keywords}")
-		public ResponseEntity<List<PostDto>> searchPosts(@PathVariable("keywords") String keyword)throws PostException{
+		public ResponseEntity<List<PostDto>> searchPostPostByTitle(@PathVariable("keywords") String keyword)throws PostException{
 			List<PostDto> postByKeyword = pService.searchPosts(keyword);
 			return new ResponseEntity<List<PostDto>>(postByKeyword,HttpStatus.CREATED);
 		}

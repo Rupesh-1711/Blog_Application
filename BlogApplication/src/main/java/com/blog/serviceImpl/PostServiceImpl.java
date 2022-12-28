@@ -6,9 +6,14 @@ import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.blog.dto.PostDto;
+import com.blog.dto.PostResponse;
 import com.blog.entity.Category;
 import com.blog.entity.Post;
 import com.blog.entity.User;
@@ -73,14 +78,33 @@ public class PostServiceImpl implements PostService{
 	}
 
 	@Override
-	public List<PostDto> getAllPost() throws PostException {
-		List<Post> allPosts = pRepo.findAll();
-		List<PostDto> allPostDtos = allPosts.stream().map((post)-> modelMapper.map(post, PostDto.class)).collect(Collectors.toList());
+	public PostResponse getAllPost(Integer pageNumber,Integer pageSize,String sortBy,String sortDir) throws PostException {
+		Pageable p;
+		if(sortDir.equalsIgnoreCase("asc")) {
+			 p = PageRequest.of(pageNumber, pageSize,Sort.by(sortBy));
+		}else {
+			 p = PageRequest.of(pageNumber, pageSize,Sort.by(sortBy).descending());
+		}
 		
-	     if(allPostDtos.size()==0) {
+		
+		
+		
+		Page<Post> pagePosts = pRepo.findAll(p);
+		
+		List<Post> allPosts = pagePosts.getContent();
+		List<PostDto> allPostDtos = allPosts.stream().map((post)-> modelMapper.map(post, PostDto.class)).collect(Collectors.toList());
+		PostResponse postResponse = new PostResponse();
+		postResponse.setContent(allPostDtos);
+		postResponse.setPageNumber(pagePosts.getNumber());
+	    postResponse.setPageSize(pagePosts.getSize());
+	    postResponse.setTotalElements(pagePosts.getTotalElements());
+	    postResponse.setTotalPages(pagePosts.getTotalPages());
+	    postResponse.setLastPage(pagePosts.isLast());
+	    
+	    if(allPostDtos.size()==0) {
 	    	 throw new PostException("Posts Not Found !");
 	     }
-		return allPostDtos;
+		return postResponse;
 	}
 
 	@Override
@@ -115,8 +139,13 @@ public class PostServiceImpl implements PostService{
 
 	@Override
 	public List<PostDto> searchPosts(String keyword) throws PostException {
-		// TODO Auto-generated method stub
-		return null;
+//		List<Post> posts = pRepo.searchByTitle("%" + keyword + "%");
+		List<Post> posts = pRepo.findByTitleContaining(keyword);
+		List<PostDto> postDtos = posts.stream().map((post)->modelMapper.map(post, PostDto.class)).collect(Collectors.toList());
+		if(postDtos.size()==0) {
+			throw new PostException("Post Not found with this Keyword");
+		}
+		return postDtos;
 	}
 
 }

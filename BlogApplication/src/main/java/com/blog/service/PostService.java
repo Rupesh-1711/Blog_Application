@@ -3,6 +3,7 @@ package com.blog.service;
 import java.util.List;
 
 import com.blog.dto.PostDto;
+import com.blog.dto.PostResponse;
 import com.blog.entity.Category;
 import com.blog.entity.Post;
 import com.blog.entity.User;
@@ -19,7 +20,7 @@ public interface PostService {
 	//Delete post
 	public String deletePost(Integer postId)throws PostException;
 	//get all posts
-	public List<PostDto> getAllPost()throws PostException;
+	public PostResponse getAllPost(Integer pageNumber,Integer pageSize,String sortBy,String sortDir)throws PostException;
 	//get post by id
 	public PostDto getPostById(Integer postId)throws PostException;
 	//get posts by category
